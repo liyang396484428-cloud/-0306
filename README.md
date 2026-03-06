@@ -1795,12 +1795,25 @@
             return `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
         }
 
-        // ========== 同步任务（修复正则表达式）==========
-        // ... 原有的 window.syncTasks 括号结束后接这里 ...
+        // ========== 同步任务 (修复正则表达式) ==========
+        window.syncTasks = function() {
+            const text = document.getElementById('syncText').value;
+            const regex = /区域([ABC])[: ：]\s*([A-Z\d,，\s/]+)/g;
+            let match;
+        
+            while ((match = regex.exec(text)) !== null) {
+                const region = match[1];
+                const ids = match[2].split(/[,，\s]+/).filter(id => id.startsWith('FZ-'));
+                if (ids.length > 0) {
+                    todayTasks[region] = ids;
+                }
+            }
+            
+            alert(translations[currentLang].sync + ' ' + (currentLang === 'zh' ? '完成' : 'completed'));
             showSyncView();
         };
         
-        // ========== 新增：自动登录逻辑 ==========
+        // 从 1815 行开始替换，确保后面没有多余的 script 标签
         window.onload = function() {
             const savedUser = localStorage.getItem('aice_user');
             if (savedUser) {
