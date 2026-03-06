@@ -1796,25 +1796,35 @@
         }
 
         // ========== 同步任务（修复正则表达式）==========
-        window.syncTasks = function() {
-            const text = document.getElementById('syncText').value;
-            // --- 修复后的正则表达式 ---
-            // 将 [FZ-A\d] 改为 [A-Z\d]，确保范围顺序正确
-            const regex = /区域([ABC])[: ：]\s*([A-Z\d,\s/]+)/g;
-            let match;
-        
-            while ((match = regex.exec(text)) !== null) {
-                const region = match[1];
-                // 修正分割逻辑，提取以 FZ- 开头的 ID
-                const ids = match[2].split(/[,，\s]+/).filter(id => id.startsWith('FZ-'));
-                if (ids.length > 0) {
-                    todayTasks[region] = ids;
-                }
-            }
-        
-            alert(translations[currentLang].sync + ' ' + (currentLang === 'zh' ? '完成' : 'completed'));
+        // ... 原有的 window.syncTasks 括号结束后接这里 ...
             showSyncView();
         };
-    </script>
-</body>
-</html>
+        
+        // ========== 新增：自动登录逻辑 ==========
+        window.onload = function() {
+            const savedUser = localStorage.getItem('aice_user');
+            if (savedUser) {
+                const userInput = document.getElementById('user');
+                if(userInput) userInput.value = savedUser;
+            }
+        };
+        
+        window.handleLogin = function() {
+            const user = document.getElementById('user').value;
+            if (user) {
+                if (document.querySelector('input[type="checkbox"]')?.checked) {
+                    localStorage.setItem('aice_user', user);
+                }
+                window.currentUser = { username: user };
+                showMainView();
+            } else {
+                alert(translations[currentLang].loginErr);
+            }
+        };
+        </script>
+        
+        <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script>
+        
+        </body>
+        </html>
