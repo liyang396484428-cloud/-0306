@@ -1081,7 +1081,18 @@
                     { id: 'FZ-A00006', region: 'A', shop: 'V.S.P STORE', owner: 'Yasmeen', phone: '0315-7022729', status: '已投放' },
                     { id: 'FZ-A00009', region: 'A', shop: 'AL-SADDAT STORE', owner: 'AHMED', phone: '0321-2899218', status: '已投放' },
                     { id: 'FZ-A00012', region: 'A', shop: 'D.MART', owner: 'Rizwan ali', phone: '0323-3337441', status: '已投放' },
-                    { id: 'FZ-A00013', region: 'A', shop: 'JALIL BROTHERS', owner: 'Abdul jalil', phone: '0345-2615285', status: '已投放' }
+                    { id: 'FZ-A00013', region: 'A', shop: 'JALIL BROTHERS', owner: 'Abdul jalil', phone: '0345-2615285', status: '已投放' },
+                    { id: 'FZ-A00014', region: 'A', shop: 'PARADISE GENERAL STORE', owner: 'Bakhtiar ahmed', phone: '0335-2544571', status: '已投放' },
+                    { id: 'FZ-A00101', region: 'B', shop: 'Bazaar Store', owner: 'Ali', phone: '0300-1111111', status: '已投放' },
+                    { id: 'FZ-A00102', region: 'B', shop: 'Corner Mart', owner: 'Ahmed', phone: '0300-2222222', status: '已投放' },
+                    { id: 'FZ-A00103', region: 'B', shop: 'Super Store', owner: 'Kamran', phone: '0300-3333333', status: '已投放' },
+                    { id: 'FZ-A00104', region: 'B', shop: 'Metro Mart', owner: 'Sara', phone: '0300-4444444', status: '已投放' },
+                    { id: 'FZ-A00105', region: 'B', shop: 'City Store', owner: 'Usman', phone: '0300-5555555', status: '已投放' },
+                    { id: 'FZ-A00201', region: 'C', shop: 'Market Shop', owner: 'Sara', phone: '0300-6666666', status: '已投放' },
+                    { id: 'FZ-A00202', region: 'C', shop: 'Mini Mart', owner: 'Usman', phone: '0300-7777777', status: '已投放' },
+                    { id: 'FZ-A00203', region: 'C', shop: 'Corner Shop', owner: 'Ali', phone: '0300-8888888', status: '已投放' },
+                    { id: 'FZ-A00204', region: 'C', shop: 'Family Store', owner: 'Ahmed', phone: '0300-9999999', status: '已投放' },
+                    { id: 'FZ-A00205', region: 'C', shop: 'New Mart', owner: 'Kamran', phone: '0300-0000000', status: '已投放' }
                 ];
             }
         }
@@ -1344,27 +1355,28 @@
             else if (tab === 'alerts') showAlerts();
         };
 
-        // ========== 同步任务（修复版，保持原始格式）==========
+        // ========== 同步任务（按模板格式，只支持中文冒号）==========
         window.syncTasks = function() {
             const text = document.getElementById('syncText').value;
             console.log('同步文本:', text);
             
-            // 修复正则表达式，去掉乱码字符
-            const regex = /区域([ABC])[：:]\s*([FZ-A\d,\s]+)/g;
-            let match;
+            // 按行分割
+            const lines = text.split('\n');
             
-            while ((match = regex.exec(text)) !== null) {
-                const region = match[1];
-                // 保持原始格式，只按逗号/空格分割
-                const ids = match[2].split(/[,，\s]+/)
-                    .map(id => id.trim())
-                    .filter(id => id && id.startsWith('FZ-'));
-                
-                console.log(`区域${region} 任务:`, ids);
-                if (ids.length > 0) {
-                    todayTasks[region] = ids;
+            lines.forEach(line => {
+                // 匹配 区域A：FZ-A00006, FZ-A00009 这种格式
+                const match = line.match(/区域([ABC])：\s*(.+)/);
+                if (match) {
+                    const region = match[1];
+                    const idsPart = match[2];
+                    // 按逗号或空格分割
+                    const ids = idsPart.split(/[,，\s]+/).filter(id => id.startsWith('FZ-'));
+                    console.log(`区域${region} 任务:`, ids);
+                    if (ids.length > 0) {
+                        todayTasks[region] = ids;
+                    }
                 }
-            }
+            });
             
             const totalTasks = Object.values(todayTasks).flat().length;
             alert(`任务同步成功！共 ${totalTasks} 个任务`);
@@ -1377,9 +1389,14 @@
                 <div class="sync-card">
                     <div class="stats-title">📱 ${t.syncTasks}</div>
                     <div style="color: #666; font-size: 14px; margin-bottom: 10px;">
-                        ${currentLang === 'zh' ? '复制微信群消息粘贴：' : 'Copy WhatsApp message:'}
+                        ${currentLang === 'zh' ? '请按以下模板格式输入：' : 'Please use this format:'}
                     </div>
-                    <textarea class="sync-textarea" id="syncText" placeholder="区域A：FZ-A00006, FZ-A00009..."></textarea>
+                    <div style="background: #f5f5f5; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 13px; color: #333;">
+                        区域A：FZ-A00006, FZ-A00009, FZ-A00012<br>
+                        区域B：FZ-A00101, FZ-A00102, FZ-A00103<br>
+                        区域C：FZ-A00201, FZ-A00202, FZ-A00203
+                    </div>
+                    <textarea class="sync-textarea" id="syncText" placeholder="区域A：FZ-A00006, FZ-A00009, FZ-A00012"></textarea>
                     <button class="sync-btn" onclick="syncTasks()">${t.sync}</button>
                 </div>
             `;
