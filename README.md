@@ -753,6 +753,35 @@
             background: #ff4444;
         }
         
+        .photo-thumb {
+            width: 100%;
+            max-height: 150px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        
+        .fullscreen-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.9);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .fullscreen-modal img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
         #photoModal {
             position: fixed;
             top: 0;
@@ -814,21 +843,21 @@
             </div>
             
             <div class="input-group">
-                <label id="usernameLabel">编号</label>
+                <label>编号</label>
                 <input type="text" id="username" placeholder="001-005" value="001">
             </div>
             
             <div class="input-group">
-                <label id="passwordLabel">密码</label>
+                <label>密码</label>
                 <input type="password" id="password" placeholder="123456" value="123456">
             </div>
             
             <div class="remember">
                 <input type="checkbox" id="remember" checked>
-                <label for="remember" id="rememberLabel">记住登录状态</label>
+                <label for="remember">记住登录状态</label>
             </div>
             
-            <button class="login-btn" onclick="handleLogin()" id="loginBtn">登录</button>
+            <button class="login-btn" onclick="handleLogin()">登录</button>
         </div>
 
         <!-- 主页面 -->
@@ -836,12 +865,12 @@
             <div class="header">
                 <div class="top-bar">
                     <div class="lang-switch">
-                        <span class="lang-btn active" onclick="switchLanguage('zh')" id="langZhBtn">中文</span>
-                        <span class="lang-btn" onclick="switchLanguage('en')" id="langEnBtn">English</span>
+                        <span class="lang-btn active" onclick="switchLanguage('zh')">中文</span>
+                        <span class="lang-btn" onclick="switchLanguage('en')">English</span>
                     </div>
                     <div class="user-info">
                         <span class="user-name" id="displayName"></span>
-                        <span class="logout-btn" onclick="logout()" id="logoutBtn">退出</span>
+                        <span class="logout-btn" onclick="logout()">退出</span>
                     </div>
                 </div>
                 <div class="date" id="currentDate"></div>
@@ -858,22 +887,22 @@
         <!-- 拍照模态框 -->
         <div id="photoModal" class="hidden">
             <div>
-                <div class="modal-title" id="photoModalTitle">拍照上传 - <span id="modalFreezerId"></span></div>
+                <div class="modal-title">拍照上传 - <span id="modalFreezerId"></span></div>
                 
                 <div style="margin-bottom: 20px;">
                     <div style="font-weight: bold; color: #333; margin-bottom: 10px; display: flex; align-items: center; gap: 5px;">
                         <span style="background: var(--aice-red); color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px;">1</span>
-                        <span id="step1Title">拍照</span>
+                        <span>拍照</span>
                     </div>
                     <div id="camera-preview" class="photo-preview">
                         相机预览区域
                     </div>
                     <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;">
-                    <button class="camera-btn" onclick="openCamera()" id="openCameraBtn">打开相机</button>
+                    <button class="camera-btn" onclick="openCamera()">打开相机</button>
                 </div>
                 
                 <div class="remark-section">
-                    <div class="remark-title" id="step2Title">
+                    <div class="remark-title">
                         <span style="background: var(--aice-red); color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; margin-right: 8px;">2</span>
                         备注
                     </div>
@@ -893,9 +922,14 @@
                     </div>
                 </div>
                 
-                <button class="upload-btn" onclick="uploadPhoto()" id="uploadBtn">确认上传</button>
-                <button style="background: #999; color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; margin-top: 10px; cursor: pointer;" onclick="closePhotoModal()" id="cancelBtn">取消</button>
+                <button class="upload-btn" onclick="uploadPhoto()">确认上传</button>
+                <button style="background: #999; color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; margin-top: 10px; cursor: pointer;" onclick="closePhotoModal()">取消</button>
             </div>
+        </div>
+
+        <!-- 图片全屏查看模态框 -->
+        <div id="fullscreenModal" class="fullscreen-modal hidden" onclick="closeFullscreen()">
+            <img id="fullscreenImage" src="" alt="">
         </div>
     </div>
 
@@ -919,7 +953,7 @@
             C: []
         };
 
-        // ========== 账号数据（编号登录）==========
+        // ========== 账号数据 ==========
         const users = {
             '001': { password: '123456', role: 'sales', region: 'A', name: '业务员001', nameEn: 'Sales 001' },
             '002': { password: '123456', role: 'sales', region: 'B', name: '业务员002', nameEn: 'Sales 002' },
@@ -931,18 +965,27 @@
         // ========== 多语言文案 ==========
         const translations = {
             zh: {
-                usernameLabel: '编号',
-                passwordLabel: '密码',
-                rememberLabel: '记住登录状态',
-                loginBtn: '登录',
-                logoutBtn: '退出',
-                step1Title: '拍照',
-                step2Title: '备注',
-                openCameraBtn: '打开相机',
-                uploadBtn: '确认上传',
-                cancelBtn: '取消',
-                cameraPreview: '相机预览区域',
-                
+                todayTasks: '今日任务',
+                myRecords: '我的记录',
+                progress: '进度',
+                waiting: '待拍照',
+                completed: '已完成',
+                photo: '拍照',
+                syncTasks: '同步任务',
+                freezerSearch: '冰柜查询',
+                regionStats: '区域统计',
+                alerts: '预警',
+                overview: '总览',
+                regions: '区域详情',
+                salesmen: '业务员',
+                totalFreezers: '总冰柜',
+                todayPhotos: '今日拍照',
+                weekPhotos: '本周拍照',
+                monthPhotos: '本月拍照',
+                overdue: '超期未拍',
+                warning: '即将超期',
+                search: '搜索',
+                sync: '解析并同步',
                 remarkNormal: '冰柜正常',
                 remarkUnused: '冰柜未使用',
                 remarkDirtyInside: '冰柜内部脏了，需清洁',
@@ -950,47 +993,30 @@
                 remarkTemperature: '冰柜温度异常',
                 remarkDamaged: '冰柜有损坏',
                 remarkOther: '其他问题',
-                remarkDetailPlaceholder: '详细说明（选填，最多100字）',
-                
-                todayTasks: '今日任务',
-                myRecords: '我的记录',
-                progress: '进度',
-                waiting: '待拍照',
-                completed: '已完成',
-                photo: '拍照',
-                
-                syncTasks: '同步任务',
-                freezerSearch: '冰柜查询',
-                regionStats: '区域统计',
-                alerts: '预警',
-                
-                overview: '总览',
-                regions: '区域详情',
-                salesmen: '业务员',
-                
-                totalFreezers: '总冰柜',
-                todayPhotos: '今日拍照',
-                weekPhotos: '本周拍照',
-                monthPhotos: '本月拍照',
-                overdue: '超期未拍',
-                warning: '即将超期',
-                
-                search: '搜索',
-                sync: '解析并同步'
+                remarkDetailPlaceholder: '详细说明（选填，最多100字）'
             },
             en: {
-                usernameLabel: 'ID',
-                passwordLabel: 'Password',
-                rememberLabel: 'Remember me',
-                loginBtn: 'Login',
-                logoutBtn: 'Logout',
-                step1Title: 'Take Photo',
-                step2Title: 'Remark',
-                openCameraBtn: 'Open Camera',
-                uploadBtn: 'Upload',
-                cancelBtn: 'Cancel',
-                cameraPreview: 'Camera Preview',
-                
+                todayTasks: "Today's Tasks",
+                myRecords: 'My Records',
+                progress: 'Progress',
+                waiting: 'Pending',
+                completed: 'Completed',
+                photo: 'Photo',
+                syncTasks: 'Sync Tasks',
+                freezerSearch: 'Freezer Search',
+                regionStats: 'Region Stats',
+                alerts: 'Alerts',
+                overview: 'Overview',
+                regions: 'Regions',
+                salesmen: 'Salesmen',
+                totalFreezers: 'Total Freezers',
+                todayPhotos: "Today's Photos",
+                weekPhotos: 'This Week',
+                monthPhotos: 'This Month',
+                overdue: 'Overdue',
+                warning: 'Warning',
+                search: 'Search',
+                sync: 'Sync',
                 remarkNormal: 'Freezer normal',
                 remarkUnused: 'Freezer not in use',
                 remarkDirtyInside: 'Inside dirty, needs cleaning',
@@ -998,33 +1024,7 @@
                 remarkTemperature: 'Temperature abnormal',
                 remarkDamaged: 'Freezer damaged',
                 remarkOther: 'Other issues',
-                remarkDetailPlaceholder: 'Details (optional, max 100 chars)',
-                
-                todayTasks: "Today's Tasks",
-                myRecords: 'My Records',
-                progress: 'Progress',
-                waiting: 'Pending',
-                completed: 'Completed',
-                photo: 'Photo',
-                
-                syncTasks: 'Sync Tasks',
-                freezerSearch: 'Freezer Search',
-                regionStats: 'Region Stats',
-                alerts: 'Alerts',
-                
-                overview: 'Overview',
-                regions: 'Regions',
-                salesmen: 'Salesmen',
-                
-                totalFreezers: 'Total Freezers',
-                todayPhotos: "Today's Photos",
-                weekPhotos: 'This Week',
-                monthPhotos: 'This Month',
-                overdue: 'Overdue',
-                warning: 'Warning',
-                
-                search: 'Search',
-                sync: 'Sync'
+                remarkDetailPlaceholder: 'Details (optional, max 100 chars)'
             }
         };
 
@@ -1038,6 +1038,20 @@
             return map[salesPerson?.trim()] || 'A';
         }
 
+        function getRemarkText(type, lang) {
+            const t = translations[lang];
+            const map = {
+                'normal': t.remarkNormal,
+                'unused': t.remarkUnused,
+                'dirty_inside': t.remarkDirtyInside,
+                'other_ad': t.remarkOtherAd,
+                'temperature': t.remarkTemperature,
+                'damaged': t.remarkDamaged,
+                'other': t.remarkOther
+            };
+            return map[type] || t.remarkNormal;
+        }
+
         // ========== 从 Google Sheets 加载数据 ==========
         async function loadFreezersFromSheet() {
             try {
@@ -1045,13 +1059,12 @@
                 const csv = await response.text();
                 
                 const lines = csv.split('\n');
-                // 数据从第3行开始（索引2），跳过表头和空行
                 const dataLines = lines.slice(2).filter(line => line.trim() && line.includes('FZ-'));
                 
                 freezers = dataLines.map(line => {
                     const values = line.split(',');
                     return {
-                        id: values[0]?.trim(),
+                        id: values[0]?.trim(),           // 保持原始格式 FZ-A00006
                         region: getRegion(values[1]),
                         shop: values[2]?.trim(),
                         owner: values[3]?.trim(),
@@ -1061,20 +1074,16 @@
                 }).filter(f => f.id);
                 
                 console.log(`✅ 已加载 ${freezers.length} 台冰柜`);
-                return freezers;
+                console.log('示例编号:', freezers.slice(0, 3).map(f => f.id));
             } catch (error) {
                 console.error('❌ 加载失败，使用默认数据', error);
-                return getDefaultFreezers();
+                freezers = [
+                    { id: 'FZ-A00006', region: 'A', shop: 'V.S.P STORE', owner: 'Yasmeen', phone: '0315-7022729', status: '已投放' },
+                    { id: 'FZ-A00009', region: 'A', shop: 'AL-SADDAT STORE', owner: 'AHMED', phone: '0321-2899218', status: '已投放' },
+                    { id: 'FZ-A00012', region: 'A', shop: 'D.MART', owner: 'Rizwan ali', phone: '0323-3337441', status: '已投放' },
+                    { id: 'FZ-A00013', region: 'A', shop: 'JALIL BROTHERS', owner: 'Abdul jalil', phone: '0345-2615285', status: '已投放' }
+                ];
             }
-        }
-
-        // 默认数据（备用）
-        function getDefaultFreezers() {
-            return [
-                { id: 'FZ-001', region: 'A', shop: 'Karachi Store', owner: 'Ali', phone: '0300-1234567', status: '已投放' },
-                { id: 'FZ-002', region: 'A', shop: 'Ali Mart', owner: 'Ahmed', phone: '0300-7654321', status: '已投放' },
-                { id: 'FZ-003', region: 'A', shop: 'Fresh Shop', owner: 'Kamran', phone: '0300-9876543', status: '已投放' }
-            ];
         }
 
         // ========== 登录函数 ==========
@@ -1097,19 +1106,15 @@
                     localStorage.setItem('aice_user', JSON.stringify(currentUser));
                 }
                 
-                // 显示主页面
                 document.getElementById('loginPage').classList.add('hidden');
                 document.getElementById('mainPage').classList.remove('hidden');
                 
-                // 更新显示
                 document.getElementById('displayName').textContent = currentLang === 'zh' ? currentUser.name : currentUser.nameEn;
-                document.getElementById('currentDate').textContent = new Date().toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : 'en-US', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                });
                 
-                // 根据角色显示不同视图
+                const today = new Date();
+                document.getElementById('currentDate').textContent = 
+                    today.getFullYear() + '年' + (today.getMonth() + 1) + '月' + today.getDate() + '日';
+                
                 if (currentUser.role === 'sales') {
                     showSalesView();
                 } else if (currentUser.role === 'office') {
@@ -1118,120 +1123,9 @@
                     showBossView();
                 }
                 
-                console.log('登录成功', currentUser);
+                alert('登录成功！欢迎 ' + currentUser.name);
             } else {
                 alert('编号或密码错误，请使用 001-005 / 123456');
-            }
-        };
-
-        // 字符计数
-        document.addEventListener('input', function(e) {
-            if (e.target.id === 'remarkDetail') {
-                const count = e.target.value.length;
-                document.getElementById('charCount').textContent = count;
-            }
-        });
-
-        // ========== 语言切换 ==========
-        window.switchLanguage = function(lang) {
-            currentLang = lang;
-            localStorage.setItem('language', lang);
-            
-            document.getElementById('langZhBtn').classList.toggle('active', lang === 'zh');
-            document.getElementById('langEnBtn').classList.toggle('active', lang === 'en');
-            
-            updateUILanguage();
-            
-            if (currentUser) {
-                if (currentUser.role === 'sales') showSalesView();
-                else if (currentUser.role === 'office') showOfficeView();
-                else if (currentUser.role === 'boss') showBossView();
-            }
-        };
-
-        function updateUILanguage() {
-            const t = translations[currentLang];
-            
-            const elements = {
-                'usernameLabel': 'usernameLabel',
-                'passwordLabel': 'passwordLabel',
-                'rememberLabel': 'rememberLabel',
-                'loginBtn': 'loginBtn',
-                'logoutBtn': 'logoutBtn',
-                'step1Title': 'step1Title',
-                'step2Title': 'step2Title',
-                'openCameraBtn': 'openCameraBtn',
-                'uploadBtn': 'uploadBtn',
-                'cancelBtn': 'cancelBtn'
-            };
-            
-            for (let [id, key] of Object.entries(elements)) {
-                const el = document.getElementById(id);
-                if (el) el.textContent = t[key];
-            }
-            
-            const cameraPreview = document.getElementById('camera-preview');
-            if (cameraPreview && !cameraPreview.querySelector('img')) {
-                cameraPreview.textContent = t.cameraPreview;
-            }
-            
-            const remarkSelect = document.getElementById('remarkType');
-            if (remarkSelect) {
-                remarkSelect.options[0].text = t.remarkNormal;
-                remarkSelect.options[1].text = t.remarkUnused;
-                remarkSelect.options[2].text = t.remarkDirtyInside;
-                remarkSelect.options[3].text = t.remarkOtherAd;
-                remarkSelect.options[4].text = t.remarkTemperature;
-                remarkSelect.options[5].text = t.remarkDamaged;
-                remarkSelect.options[6].text = t.remarkOther;
-            }
-            
-            const remarkDetail = document.getElementById('remarkDetail');
-            if (remarkDetail) remarkDetail.placeholder = t.remarkDetailPlaceholder;
-        }
-
-        function getRemarkText(type, lang) {
-            const t = translations[lang];
-            const map = {
-                'normal': t.remarkNormal,
-                'unused': t.remarkUnused,
-                'dirty_inside': t.remarkDirtyInside,
-                'other_ad': t.remarkOtherAd,
-                'temperature': t.remarkTemperature,
-                'damaged': t.remarkDamaged,
-                'other': t.remarkOther
-            };
-            return map[type] || t.remarkNormal;
-        }
-
-        // ========== 初始化 ==========
-        window.onload = async function() {
-            switchLanguage(currentLang);
-            
-            // 加载冰柜数据
-            await loadFreezersFromSheet();
-            
-            const savedUser = localStorage.getItem('aice_user');
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                // 显示主页面
-                document.getElementById('loginPage').classList.add('hidden');
-                document.getElementById('mainPage').classList.remove('hidden');
-                
-                document.getElementById('displayName').textContent = currentLang === 'zh' ? currentUser.name : currentUser.nameEn;
-                document.getElementById('currentDate').textContent = new Date().toLocaleDateString(currentLang === 'zh' ? 'zh-CN' : 'en-US', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                });
-                
-                if (currentUser.role === 'sales') {
-                    showSalesView();
-                } else if (currentUser.role === 'office') {
-                    showOfficeView();
-                } else if (currentUser.role === 'boss') {
-                    showBossView();
-                }
             }
         };
 
@@ -1240,6 +1134,31 @@
             currentUser = null;
             document.getElementById('loginPage').classList.remove('hidden');
             document.getElementById('mainPage').classList.add('hidden');
+        };
+
+        window.switchLanguage = function(lang) {
+            currentLang = lang;
+            localStorage.setItem('language', lang);
+            
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (currentUser) {
+                document.getElementById('displayName').textContent = currentLang === 'zh' ? currentUser.name : currentUser.nameEn;
+                if (currentUser.role === 'sales') showSalesView();
+                else if (currentUser.role === 'office') showOfficeView();
+                else if (currentUser.role === 'boss') showBossView();
+            }
+        };
+
+        // ========== 图片全屏查看 ==========
+        window.viewFullscreen = function(src) {
+            document.getElementById('fullscreenImage').src = src;
+            document.getElementById('fullscreenModal').classList.remove('hidden');
+        };
+
+        window.closeFullscreen = function() {
+            document.getElementById('fullscreenModal').classList.add('hidden');
         };
 
         // ========== 业务员视图 ==========
@@ -1266,6 +1185,8 @@
             const t = translations[currentLang];
             const region = currentUser.region;
             const taskIds = todayTasks[region] || [];
+            
+            // 直接用原始ID匹配（如 FZ-A00006）
             const tasks = taskIds.map(id => freezers.find(f => f.id === id)).filter(f => f);
             
             let html = `
@@ -1297,7 +1218,7 @@
                             <span class="shop-name">${task.shop}</span>
                         </div>
                         <div class="shop-details">
-                          店主：${task.owner} | ${task.phone}
+                            店主：${task.owner} | ${task.phone}
                         </div>
                         ${photo && photo.remark ? `
                             <div class="remark-badge">${photo.remark.text}</div>
@@ -1320,41 +1241,35 @@
         function showSalesHistory() {
             const t = translations[currentLang];
             const myPhotos = photos.filter(p => p.sales === currentUser.username);
+            
+            if (myPhotos.length === 0) {
+                document.getElementById('content').innerHTML = '<div class="stats-card">暂无记录</div>';
+                return;
+            }
+            
             let html = '<div class="task-list">';
             
-            const grouped = {};
-            myPhotos.forEach(photo => {
-                if (!grouped[photo.freezerId]) grouped[photo.freezerId] = [];
-                grouped[photo.freezerId].push(photo);
-            });
-            
-            for (let freezerId in grouped) {
-                const freezer = freezers.find(f => f.id === freezerId);
-                const photoList = grouped[freezerId].sort((a, b) => new Date(b.time) - new Date(a.time));
+            myPhotos.sort((a, b) => new Date(b.time) - new Date(a.time)).forEach(photo => {
+                const freezer = freezers.find(f => f.id === photo.freezerId);
                 html += `
                     <div class="task-item">
                         <div class="task-header">
-                            <span class="freezer-id">${freezerId}</span>
+                            <span class="freezer-id">${photo.freezerId}</span>
                             <span class="shop-name">${freezer ? freezer.shop : ''}</span>
                         </div>
-                        <div style="margin-top: 10px;">
-                            <span class="badge">${photoList.length} ${t.totalFreezers}</span>
-                            <span class="badge warning">${getDaysAgo(photoList[0].time)}${currentLang === 'zh' ? '天前' : 'd'}</span>
-                        </div>
-                        <div style="margin-top: 10px; max-height: 150px; overflow-y: auto;">
-                            ${photoList.slice(0, 3).map(p => `
-                                <div class="history-item">
-                                    <div class="history-time">${formatDateTime(p.time)}</div>
-                                    ${p.remark ? `
-                                        <div class="remark-badge">${p.remark.text}</div>
-                                    ` : ''}
-                                </div>
-                            `).join('')}
-                            ${photoList.length > 3 ? `<div style="color:#999;">+${photoList.length-3}</div>` : ''}
-                        </div>
+                        <div class="time">${formatDateTime(photo.time)}</div>
+                        ${photo.photo ? `
+                            <div style="margin-top:10px;">
+                                <img src="${photo.photo}" class="photo-thumb" onclick="viewFullscreen('${photo.photo}')">
+                            </div>
+                        ` : ''}
+                        ${photo.remark ? `
+                            <div class="remark-badge">${photo.remark.text}</div>
+                            ${photo.remark.detail ? `<div class="remark-detail">${photo.remark.detail}</div>` : ''}
+                        ` : ''}
                     </div>
                 `;
-            }
+            });
             
             html += '</div>';
             document.getElementById('content').innerHTML = html;
@@ -1429,6 +1344,33 @@
             else if (tab === 'alerts') showAlerts();
         };
 
+        // ========== 同步任务（修复版，保持原始格式）==========
+        window.syncTasks = function() {
+            const text = document.getElementById('syncText').value;
+            console.log('同步文本:', text);
+            
+            // 修复正则表达式，去掉乱码字符
+            const regex = /区域([ABC])[：:]\s*([FZ-A\d,\s]+)/g;
+            let match;
+            
+            while ((match = regex.exec(text)) !== null) {
+                const region = match[1];
+                // 保持原始格式，只按逗号/空格分割
+                const ids = match[2].split(/[,，\s]+/)
+                    .map(id => id.trim())
+                    .filter(id => id && id.startsWith('FZ-'));
+                
+                console.log(`区域${region} 任务:`, ids);
+                if (ids.length > 0) {
+                    todayTasks[region] = ids;
+                }
+            }
+            
+            const totalTasks = Object.values(todayTasks).flat().length;
+            alert(`任务同步成功！共 ${totalTasks} 个任务`);
+            showSyncView();
+        };
+
         function showSyncView() {
             const t = translations[currentLang];
             let html = `
@@ -1437,81 +1379,90 @@
                     <div style="color: #666; font-size: 14px; margin-bottom: 10px;">
                         ${currentLang === 'zh' ? '复制微信群消息粘贴：' : 'Copy WhatsApp message:'}
                     </div>
-                    <textarea class="sync-textarea" id="syncText" placeholder="区域A：FZ-A00006, FZ-A00019..."></textarea>
+                    <textarea class="sync-textarea" id="syncText" placeholder="区域A：FZ-A00006, FZ-A00009..."></textarea>
                     <button class="sync-btn" onclick="syncTasks()">${t.sync}</button>
                 </div>
-                <div class="region-tasks">
-                    <div class="stats-title">📋 ${t.todayTasks}</div>
             `;
             
+            // 显示当前任务
+            html += '<div class="region-tasks"><div class="stats-title">今日任务</div>';
             for (let region in todayTasks) {
-                html += `<div class="region-title">${currentLang === 'zh' ? '区域' : 'Region'}${region} (${todayTasks[region].length})</div>`;
-                todayTasks[region].forEach(id => {
-                    html += `<span class="freezer-tag">${id}</span>`;
-                });
+                if (todayTasks[region].length > 0) {
+                    html += `<div class="region-title">区域${region} (${todayTasks[region].length})</div>`;
+                    todayTasks[region].forEach(id => {
+                        html += `<span class="freezer-tag">${id}</span>`;
+                    });
+                }
             }
             html += '</div>';
             
             document.getElementById('content').innerHTML = html;
         }
 
-        window.showFreezerSearch = function() {
+        function showFreezerSearch() {
             const t = translations[currentLang];
             let html = `
                 <div class="search-box">
-                    <input type="text" id="searchFreezer" placeholder="FZ-A00006" onkeyup="searchFreezer(event)">
+                    <input type="text" id="searchFreezer" placeholder="FZ-A00006">
                     <button class="photo-btn" onclick="searchFreezer()">${t.search}</button>
                 </div>
                 <div id="searchResult"></div>
             `;
             document.getElementById('content').innerHTML = html;
-        };
+        }
 
-        window.searchFreezer = function(e) {
-            if (e && e.key && e.key !== 'Enter') return;
-            
-            const searchId = document.getElementById('searchFreezer').value.toUpperCase();
+        window.searchFreezer = function() {
+            const searchId = document.getElementById('searchFreezer').value.trim();
             const freezer = freezers.find(f => f.id === searchId);
             
             if (!freezer) {
-                document.getElementById('searchResult').innerHTML = `
-                    <div class="stats-card">
-                        <div style="color:#ff4444; text-align:center;">❌ ${searchId} ${currentLang === 'zh' ? '未找到' : 'not found'}</div>
-                    </div>
-                `;
+                document.getElementById('searchResult').innerHTML = '<div class="stats-card">❌ 未找到</div>';
                 return;
             }
             
             const freezerPhotos = photos.filter(p => p.freezerId === freezer.id).sort((a, b) => new Date(b.time) - new Date(a.time));
-            const lastPhoto = freezerPhotos[0];
             
-            document.getElementById('searchResult').innerHTML = `
+            let html = `
                 <div class="stats-card">
-                    <div class="stats-title">${freezer.id} - ${freezer.shop}</div>
+                    <div class="stats-title">${freezer.id}</div>
                     <div class="stat-row">
-                        <span>${currentLang === 'zh' ? '区域' : 'Region'}</span>
-                        <span class="stat-value">${freezer.region}</span>
+                        <span>商店</span>
+                        <span class="stat-value">${freezer.shop}</span>
                     </div>
                     <div class="stat-row">
-                        <span>${currentLang === 'zh' ? '店主' : 'Owner'}</span>
+                        <span>店主</span>
                         <span class="stat-value">${freezer.owner}</span>
                     </div>
                     <div class="stat-row">
-                        <span>${currentLang === 'zh' ? '电话' : 'Phone'}</span>
+                        <span>电话</span>
                         <span class="stat-value">${freezer.phone}</span>
                     </div>
                     <div class="stat-row">
-                        <span>${currentLang === 'zh' ? '累计拍照' : 'Total'}</span>
+                        <span>区域</span>
+                        <span class="stat-value">${freezer.region}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>累计拍照</span>
                         <span class="stat-value">${freezerPhotos.length}</span>
                     </div>
-                    ${lastPhoto ? `
-                        <div class="stat-row">
-                            <span>${currentLang === 'zh' ? '最后拍照' : 'Last'}</span>
-                            <span class="stat-value">${formatDateTime(lastPhoto.time)}</span>
-                        </div>
-                    ` : ''}
                 </div>
             `;
+            
+            if (freezerPhotos.length > 0) {
+                html += '<div class="stats-card"><div class="stats-title">最近照片</div>';
+                freezerPhotos.slice(0, 3).forEach(photo => {
+                    html += `
+                        <div style="margin-bottom:10px;">
+                            <div class="time">${formatDateTime(photo.time)}</div>
+                            ${photo.photo ? `<img src="${photo.photo}" class="photo-thumb" onclick="viewFullscreen('${photo.photo}')">` : ''}
+                            ${photo.remark ? `<div class="remark-badge">${photo.remark.text}</div>` : ''}
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+            
+            document.getElementById('searchResult').innerHTML = html;
         };
 
         function showRegionStats() {
@@ -1576,7 +1527,7 @@
                 html += '<div style="text-align:center; padding:30px; color:#00a65a;">✅ ' + (currentLang === 'zh' ? '一切正常' : 'All good') + '</div>';
             } else {
                 html += '<div class="task-list">';
-                alerts.slice(0, 5).forEach(alert => {
+                alerts.slice(0, 10).forEach(alert => {
                     const days = alert.daysAgo === 999 ? (currentLang === 'zh' ? '新冰柜' : 'New') : alert.daysAgo + (currentLang === 'zh' ? '天' : 'd');
                     html += `
                         <div class="task-item" style="border-left: 4px solid #ff4444;">
@@ -1585,13 +1536,13 @@
                                 <span class="shop-name">${alert.freezer.shop}</span>
                             </div>
                             <div style="color:#ff4444; font-size:13px;">⚠️ ${days} ${currentLang === 'zh' ? '未拍照' : 'no photo'}</div>
+                            ${alert.lastPhoto ? `
+                                <div class="time">最后拍照：${formatDateTime(alert.lastPhoto.time)}</div>
+                            ` : ''}
                         </div>
                     `;
                 });
                 html += '</div>';
-                if (alerts.length > 5) {
-                    html += `<div style="text-align:center; padding:10px; color:#999;">+${alerts.length-5} ${currentLang === 'zh' ? '更多' : 'more'}</div>`;
-                }
             }
             
             html += '</div>';
@@ -1632,22 +1583,10 @@
                 <div class="stats-card">
                     <div class="stats-title">📊 ${t.overview}</div>
                     <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-value">${totalFreezers}</div>
-                            <div class="stat-label">${t.totalFreezers}</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">${todayPhotos}</div>
-                            <div class="stat-label">${t.todayPhotos}</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">${weekPhotos}</div>
-                            <div class="stat-label">${t.weekPhotos}</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">${monthPhotos}</div>
-                            <div class="stat-label">${t.monthPhotos}</div>
-                        </div>
+                        <div class="stat-item"><div class="stat-value">${totalFreezers}</div><div class="stat-label">${t.totalFreezers}</div></div>
+                        <div class="stat-item"><div class="stat-value">${todayPhotos}</div><div class="stat-label">${t.todayPhotos}</div></div>
+                        <div class="stat-item"><div class="stat-value">${weekPhotos}</div><div class="stat-label">${t.weekPhotos}</div></div>
+                        <div class="stat-item"><div class="stat-value">${monthPhotos}</div><div class="stat-label">${t.monthPhotos}</div></div>
                     </div>
                 </div>
             `;
@@ -1671,6 +1610,8 @@
                 const week = salesPhotos.filter(p => isThisWeek(new Date(p.time))).length;
                 const month = salesPhotos.filter(p => isThisMonth(new Date(p.time))).length;
                 
+                const responsible = freezers.filter(f => f.region === s.region).length;
+                
                 html += `
                     <div class="region-item">
                         <div class="region-header">
@@ -1684,6 +1625,7 @@
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: ${Math.min(100, week/25*100)}%"></div>
                         </div>
+                        <div style="font-size:12px; color:#999;">负责 ${responsible} 台</div>
                     </div>
                 `;
             });
@@ -1701,8 +1643,7 @@
             document.getElementById('remarkType').value = 'normal';
             document.getElementById('remarkDetail').value = '';
             document.getElementById('charCount').textContent = '0';
-            
-            document.getElementById('camera-preview').innerHTML = translations[currentLang].cameraPreview;
+            document.getElementById('camera-preview').innerHTML = '相机预览区域';
         };
 
         window.closePhotoModal = function() {
@@ -1731,11 +1672,20 @@
             const remarkType = document.getElementById('remarkType').value;
             const remarkDetail = document.getElementById('remarkDetail').value;
             
+            // 获取照片数据
+            const photoImg = document.getElementById('camera-preview').querySelector('img');
+            const photoData = photoImg ? photoImg.src : null;
+            
+            if (!photoData) {
+                alert('请先拍照');
+                return;
+            }
+            
             const photo = {
                 freezerId: currentFreezer,
                 time: new Date().toISOString(),
                 sales: currentUser.username,
-                photo: '📸',
+                photo: photoData,
                 remark: {
                     type: remarkType,
                     text: getRemarkText(remarkType, currentLang),
@@ -1792,52 +1742,33 @@
 
         function formatDateTime(dateStr) {
             const date = new Date(dateStr);
-            return `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+            return `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
         }
 
-        // ========== 同步任务 (修复正则表达式) ==========
-        window.syncTasks = function() {
-            const text = document.getElementById('syncText').value;
-            const regex = /区域([ABC])[: ：]\s*([A-Z\d,，\s/]+)/g;
-            let match;
-        
-            while ((match = regex.exec(text)) !== null) {
-                const region = match[1];
-                const ids = match[2].split(/[,，\s]+/).filter(id => id.startsWith('FZ-'));
-                if (ids.length > 0) {
-                    todayTasks[region] = ids;
-                }
-            }
+        // ========== 初始化 ==========
+        window.onload = async function() {
+            await loadFreezersFromSheet();
             
-            alert(translations[currentLang].sync + ' ' + (currentLang === 'zh' ? '完成' : 'completed'));
-            showSyncView();
-        };
-        
-        // 从 1815 行开始替换，确保后面没有多余的 script 标签
-        window.onload = function() {
             const savedUser = localStorage.getItem('aice_user');
             if (savedUser) {
-                const userInput = document.getElementById('user');
-                if(userInput) userInput.value = savedUser;
-            }
-        };
-        
-        window.handleLogin = function() {
-            const user = document.getElementById('user').value;
-            if (user) {
-                if (document.querySelector('input[type="checkbox"]')?.checked) {
-                    localStorage.setItem('aice_user', user);
+                try {
+                    currentUser = JSON.parse(savedUser);
+                    document.getElementById('loginPage').classList.add('hidden');
+                    document.getElementById('mainPage').classList.remove('hidden');
+                    document.getElementById('displayName').textContent = currentLang === 'zh' ? currentUser.name : currentUser.nameEn;
+                    
+                    const today = new Date();
+                    document.getElementById('currentDate').textContent = 
+                        today.getFullYear() + '年' + (today.getMonth() + 1) + '月' + today.getDate() + '日';
+                    
+                    if (currentUser.role === 'sales') showSalesView();
+                    else if (currentUser.role === 'office') showOfficeView();
+                    else if (currentUser.role === 'boss') showBossView();
+                } catch (e) {
+                    localStorage.removeItem('aice_user');
                 }
-                window.currentUser = { username: user };
-                showMainView();
-            } else {
-                alert(translations[currentLang].loginErr);
             }
         };
-        </script>
-        
-        <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-        <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js"></script>
-        
-        </body>
-        </html>
+    </script>
+</body>
+</html>
